@@ -1,0 +1,14 @@
+Package: sparklyrStemmer
+Type: Package
+Title: Wrapper for Spark Stemming
+Version: 0.1.0
+Author: Wojciech Ksiazek
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: Sparklyr wrapper for https://github.com/master/spark-stemming .
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: dplyr,
+    rlang,
+    sparklyr,
+    jsonlite
