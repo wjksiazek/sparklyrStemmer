@@ -4,6 +4,6 @@ spark_dependencies <- function(spark_version, scala_version, ...){
 
 .onLoad <- function(libname, pkgname) {
   sparklyr::register_extension(pkgname)
+  if (getRversion() >= "2.15.1")  utils::globalVariables(c("."))
 }
-
 

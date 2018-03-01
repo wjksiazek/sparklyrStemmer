@@ -1,4 +1,7 @@
-
+#' @importFrom utils head
+#' @importFrom dplyr %>%
+#' @importFrom rlang %||%
+#' @import sparklyr
 
 ml_set_param <- function(x, param, value, ...) {
   setter <- param %>%
@@ -6,19 +9,19 @@ ml_set_param <- function(x, param, value, ...) {
     {paste0("set",
             toupper(substr(., 1, 1)),
             substr(., 2, nchar(.)))}
-  spark_jobj(x) %>%
-    invoke(setter, value) %>%
+  sparklyr::spark_jobj(x) %>%
+    sparklyr::invoke(setter, value) %>%
     ml_constructor_dispatch()
 }
 
 ml_get_param_map <- function(jobj) {
-  sc <- spark_connection(jobj)
-  object <- if (spark_version(sc) < "2.0.0")
+  sc <- sparklyr::spark_connection(jobj)
+  object <- if (sparklyr::spark_version(sc) < "2.0.0")
     "sparklyr.MLUtils"
   else
     "sparklyr.MLUtils2"
 
-  invoke_static(sc,
+  sparklyr::invoke_static(sc,
                 object,
                 "getParamMap",
                 jobj) %>%

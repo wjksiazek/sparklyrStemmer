@@ -1,3 +1,8 @@
+#' @importFrom utils head
+#' @importFrom dplyr %>%
+#' @importFrom rlang %||%
+#' @import sparklyr
+#'
 ml_create_mapping_tables <- function() { # nocov start
   param_mapping_list <-
     list("input_col" = "inputCol",

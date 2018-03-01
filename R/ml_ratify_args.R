@@ -1,3 +1,8 @@
+#' @importFrom utils head
+#' @importFrom dplyr %>%
+#' @importFrom rlang %||%
+#' @import sparklyr
+
 ml_ratify_args <- function(env = rlang::caller_env(2)) {
   caller_frame <- rlang::caller_frame()
   caller <- caller_frame$fn_name %>%

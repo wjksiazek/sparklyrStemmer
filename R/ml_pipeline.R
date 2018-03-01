@@ -1,3 +1,8 @@
+#' @importFrom utils head
+#' @importFrom dplyr %>%
+#' @importFrom rlang %||%
+#' @import sparklyr
+
 new_ml_transformer <- function(jobj, ..., subclass = NULL) {
   new_ml_pipeline_stage(jobj,
                         ...,
@@ -7,7 +12,7 @@ new_ml_transformer <- function(jobj, ..., subclass = NULL) {
 new_ml_pipeline_stage <- function(jobj, ..., subclass = NULL) {
   structure(
     list(
-      uid = invoke(jobj, "uid"),
+      uid = sparklyr::invoke(jobj, "uid"),
       param_map = ml_get_param_map(jobj),
       ...,
       .jobj = jobj
@@ -17,37 +22,37 @@ new_ml_pipeline_stage <- function(jobj, ..., subclass = NULL) {
 }
 
 ml_add_stage <- function(x, transformer) {
-  sc <- spark_connection(x)
-  stages <- if (rlang::is_null(ml_stages(x))) list(spark_jobj(transformer)) else {
-    tryCatch(spark_jobj(x) %>%
-               invoke("getStages") %>%
-               c(spark_jobj(transformer)),
-             error = function(e) spark_jobj(x) %>%
-               invoke("stages") %>%
-               c(spark_jobj(transformer))
+  sc <- sparklyr::spark_connection(x)
+  stages <- if (rlang::is_null(sparklyr::ml_stages(x))) list(sparklyr::spark_jobj(transformer)) else {
+    tryCatch(sparklyr::spark_jobj(x) %>%
+               sparklyr::invoke("getStages") %>%
+               c(sparklyr::spark_jobj(transformer)),
+             error = function(e) sparklyr::spark_jobj(x) %>%
+               sparklyr::invoke("stages") %>%
+               c(sparklyr::spark_jobj(transformer))
     )
   }
 
-  jobj <- invoke_static(sc, "sparklyr.MLUtils",
+  jobj <- sparklyr::invoke_static(sc, "sparklyr.MLUtils",
                         "createPipelineFromStages",
-                        ml_uid(x),
+                        sparklyr::ml_uid(x),
                         stages)
   new_ml_pipeline(jobj)
 }
 
 ml_new_transformer <- function(sc, class, input_col, output_col, uid) {
-  ensure_scalar_character(input_col)
-  ensure_scalar_character(output_col)
-  ensure_scalar_character(uid)
-  invoke_new(sc, class, uid) %>%
-    invoke("setInputCol", input_col) %>%
-    invoke("setOutputCol", output_col)
+  sparklyr::ensure_scalar_character(input_col)
+  sparklyr::ensure_scalar_character(output_col)
+  sparklyr::ensure_scalar_character(uid)
+  sparklyr::invoke_new(sc, class, uid) %>%
+    sparklyr::invoke("setInputCol", input_col) %>%
+    sparklyr::invoke("setOutputCol", output_col)
 }
 
 new_ml_pipeline <- function(jobj, ..., subclass = NULL) {
   stages <- tryCatch({
     jobj %>%
-      invoke("getStages") %>%
+      sparklyr::invoke("getStages") %>%
       lapply(ml_constructor_dispatch)
   },
   error = function(e) {
@@ -150,7 +155,7 @@ ml_args_to_validate <- function(args, current_args, default_args = current_args)
 
 ml_get_constructor <- function(jobj) {
   jobj %>%
-    jobj_class() %>%
+    sparklyr::jobj_class() %>%
     lapply(ml_map_class) %>%
     Filter(length, .) %>%
     lapply(function(x) paste0("new_ml_", x)) %>%
@@ -165,14 +170,15 @@ ml_constructor_dispatch <- function(jobj) {
 }
 
 ml_map_class <- function(x) {
-  ml_class_mapping[[x]]
+  mapping_tables <- ml_create_mapping_tables()
+  mapping_tables$ml_class_mapping[[x]]
 }
 
 ml_validator_stemmer <- function(args, nms){
   args %>%
     ml_validate_args(
       {
-        language <- ensure_scalar_character(language)
+        language <- sparklyr::ensure_scalar_character(language)
       }
     ) %>%
     ml_extract_args(nms)
@@ -207,3 +213,8 @@ ml_validate_args <- function(
                 .bury = NULL)
 }
 
+new_ml_estimator <- function(jobj, ..., subclass = NULL) {
+  new_ml_pipeline_stage(jobj,
+                        ...,
+                        subclass = c(subclass, "ml_estimator"))
+}
